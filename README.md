@@ -1,13 +1,7 @@
+# FastSwap SDK
 
-> **Notice**
->
-> Moved to https://github.com/pancakeswap/pancake-frontend/tree/develop/packages/swap-sdk
-
-# Pancakeswap SDK
-
-Forked from the [Uniswap SDK](https://github.com/Uniswap/uniswap-v2-sdk/commit/a88048e9c4198a5bdaea00883ca00c8c8e582605).
-
-You can refer to the Uniswap SDK documentation [uniswap.org](https://docs.uniswap.org/sdk/2.0.0/).
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
+[![Actions Status](https://git.sfxdx.ru/fastswap/fastswap-sdk/workflows/CI/badge.svg)](https://git.sfxdx.ru/fastswap/fastswap-sdk)
 
 ## Running tests
 
@@ -16,13 +10,13 @@ To run the tests, follow these steps. You must have at least node v10 and [yarn]
 First clone the repository:
 
 ```sh
-git clone https://github.com/pancakeswap/pancake-swap-sdk.git
+git clone https://git.sfxdx.ru/fastswap/fastswap-sdk.git
 ```
 
-Move into the pancakeswap-sdk working directory
+Move into the fastswap-sdk working directory
 
 ```sh
-cd pancakeswap-sdk/
+cd fastswap-sdk/
 ```
 
 Install dependencies

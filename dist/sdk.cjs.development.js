@@ -15,12 +15,13 @@ var solidity = require('@ethersproject/solidity');
 var contracts = require('@ethersproject/contracts');
 var networks = require('@ethersproject/networks');
 var providers = require('@ethersproject/providers');
+var IPancakePair = _interopDefault(require('@pancakeswap-libs/pancake-swap-core/build/IPancakePair.json'));
 
-var _FACTORY_ADDRESS_MAP, _INIT_CODE_HASH_MAP, _SOLIDITY_TYPE_MAXIMA;
+var _SOLIDITY_TYPE_MAXIMA;
 
 (function (ChainId) {
   ChainId[ChainId["MAINNET"] = 56] = "MAINNET";
-  ChainId[ChainId["TESTNET"] = 97] = "TESTNET";
+  ChainId[ChainId["BSCTESTNET"] = 97] = "BSCTESTNET";
 })(exports.ChainId || (exports.ChainId = {}));
 
 (function (TradeType) {
@@ -35,9 +36,7 @@ var _FACTORY_ADDRESS_MAP, _INIT_CODE_HASH_MAP, _SOLIDITY_TYPE_MAXIMA;
 })(exports.Rounding || (exports.Rounding = {}));
 
 var FACTORY_ADDRESS = '0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73';
-var FACTORY_ADDRESS_MAP = (_FACTORY_ADDRESS_MAP = {}, _FACTORY_ADDRESS_MAP[exports.ChainId.MAINNET] = FACTORY_ADDRESS, _FACTORY_ADDRESS_MAP[exports.ChainId.TESTNET] = '0x6725f303b657a9451d8ba641348b6761a6cc7a17', _FACTORY_ADDRESS_MAP);
 var INIT_CODE_HASH = '0x00fb7f630766e6a796048ea87d01acd3068e8ff67d078148a3fa3f4a84f69bd5';
-var INIT_CODE_HASH_MAP = (_INIT_CODE_HASH_MAP = {}, _INIT_CODE_HASH_MAP[exports.ChainId.MAINNET] = INIT_CODE_HASH, _INIT_CODE_HASH_MAP[exports.ChainId.TESTNET] = '0xd0d4c4cd0848c93cb4fd1f498d7013ee6bfb25783ea21593d5834f5d250ece66', _INIT_CODE_HASH_MAP);
 var MINIMUM_LIQUIDITY = /*#__PURE__*/JSBI.BigInt(1000); // exports for internal consumption
 
 var ZERO = /*#__PURE__*/JSBI.BigInt(0);
@@ -47,8 +46,8 @@ var THREE = /*#__PURE__*/JSBI.BigInt(3);
 var FIVE = /*#__PURE__*/JSBI.BigInt(5);
 var TEN = /*#__PURE__*/JSBI.BigInt(10);
 var _100 = /*#__PURE__*/JSBI.BigInt(100);
-var FEES_NUMERATOR = /*#__PURE__*/JSBI.BigInt(9975);
-var FEES_DENOMINATOR = /*#__PURE__*/JSBI.BigInt(10000);
+var _998 = /*#__PURE__*/JSBI.BigInt(998);
+var _1000 = /*#__PURE__*/JSBI.BigInt(1000);
 var SolidityType;
 
 (function (SolidityType) {
@@ -290,7 +289,7 @@ function validateAndParseAddress(address$1) {
   }
 }
 function parseBigintIsh(bigintIsh) {
-  return bigintIsh instanceof JSBI ? bigintIsh : JSBI.BigInt(bigintIsh);
+  return bigintIsh instanceof JSBI ? bigintIsh : typeof bigintIsh === 'bigint' ? JSBI.BigInt(bigintIsh.toString()) : JSBI.BigInt(bigintIsh);
 } // mock the on-chain sqrt function
 
 function sqrt(y) {
@@ -370,7 +369,7 @@ function Currency(decimals, symbol, name) {
  * The only instance of the base class `Currency`.
  */
 
-Currency.ETHER = /*#__PURE__*/new Currency(18, 'BNB', 'BNB');
+Currency.ETHER = /*#__PURE__*/new Currency(18, 'BNB', 'Binance');
 var ETHER = Currency.ETHER;
 
 var _WETH;
@@ -381,13 +380,12 @@ var _WETH;
 var Token = /*#__PURE__*/function (_Currency) {
   _inheritsLoose(Token, _Currency);
 
-  function Token(chainId, address, decimals, symbol, name, projectLink) {
+  function Token(chainId, address, decimals, symbol, name) {
     var _this;
 
     _this = _Currency.call(this, decimals, symbol, name) || this;
     _this.chainId = chainId;
     _this.address = validateAndParseAddress(address);
-    _this.projectLink = projectLink;
     return _this;
   }
   /**
@@ -437,7 +435,7 @@ function currencyEquals(currencyA, currencyB) {
     return currencyA === currencyB;
   }
 }
-var WETH = (_WETH = {}, _WETH[exports.ChainId.MAINNET] = /*#__PURE__*/new Token(exports.ChainId.MAINNET, '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', 18, 'WBNB', 'Wrapped BNB', 'https://www.binance.org'), _WETH[exports.ChainId.TESTNET] = /*#__PURE__*/new Token(exports.ChainId.TESTNET, '0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd', 18, 'WBNB', 'Wrapped BNB', 'https://www.binance.org'), _WETH);
+var WETH = (_WETH = {}, _WETH[exports.ChainId.MAINNET] = /*#__PURE__*/new Token(exports.ChainId.MAINNET, '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', 18, 'WBNB', 'Wrapped BNB'), _WETH[exports.ChainId.BSCTESTNET] = /*#__PURE__*/new Token(exports.ChainId.BSCTESTNET, '0xae13d989dac2f0debff460ac112a837c89baa7cd', 18, 'WBNB', 'Wrapped BNB'), _WETH);
 
 var _toSignificantRoundin, _toFixedRounding;
 var Decimal = /*#__PURE__*/toFormat(_Decimal);
@@ -543,11 +541,7 @@ var Fraction = /*#__PURE__*/function () {
     Big.DP = decimalPlaces;
     Big.RM = toFixedRounding[rounding];
     return new Big(this.numerator.toString()).div(this.denominator.toString()).toFormat(decimalPlaces, format);
-  }
-  /**
-   * Helper method for converting any super class back to a fraction
-   */
-  ;
+  };
 
   _createClass(Fraction, [{
     key: "quotient",
@@ -559,11 +553,6 @@ var Fraction = /*#__PURE__*/function () {
     key: "remainder",
     get: function get() {
       return new Fraction(JSBI.remainder(this.numerator, this.denominator), this.denominator);
-    }
-  }, {
-    key: "asFraction",
-    get: function get() {
-      return new Fraction(this.numerator, this.denominator);
     }
   }]);
 
@@ -765,36 +754,26 @@ var Price = /*#__PURE__*/function (_Fraction) {
 }(Fraction);
 
 var PAIR_ADDRESS_CACHE = {};
-
-var composeKey = function composeKey(token0, token1) {
-  return token0.chainId + "-" + token0.address + "-" + token1.address;
-};
-
 var Pair = /*#__PURE__*/function () {
   function Pair(tokenAmountA, tokenAmountB) {
     var tokenAmounts = tokenAmountA.token.sortsBefore(tokenAmountB.token) // does safety checks
     ? [tokenAmountA, tokenAmountB] : [tokenAmountB, tokenAmountA];
-    this.liquidityToken = new Token(tokenAmounts[0].token.chainId, Pair.getAddress(tokenAmounts[0].token, tokenAmounts[1].token), 18, 'Cake-LP', 'Pancake LPs');
+    this.liquidityToken = new Token(tokenAmounts[0].token.chainId, Pair.getAddress(tokenAmounts[0].token, tokenAmounts[1].token), 18, 'UNI-V2', 'Uniswap V2');
     this.tokenAmounts = tokenAmounts;
   }
 
   Pair.getAddress = function getAddress(tokenA, tokenB) {
-    var _PAIR_ADDRESS_CACHE;
+    var _PAIR_ADDRESS_CACHE, _PAIR_ADDRESS_CACHE$t;
 
-    var _ref = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA],
-        token0 = _ref[0],
-        token1 = _ref[1]; // does safety checks
+    var tokens = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA]; // does safety checks
 
+    if (((_PAIR_ADDRESS_CACHE = PAIR_ADDRESS_CACHE) === null || _PAIR_ADDRESS_CACHE === void 0 ? void 0 : (_PAIR_ADDRESS_CACHE$t = _PAIR_ADDRESS_CACHE[tokens[0].address]) === null || _PAIR_ADDRESS_CACHE$t === void 0 ? void 0 : _PAIR_ADDRESS_CACHE$t[tokens[1].address]) === undefined) {
+      var _PAIR_ADDRESS_CACHE2, _extends2, _extends3;
 
-    var key = composeKey(token0, token1);
-
-    if (((_PAIR_ADDRESS_CACHE = PAIR_ADDRESS_CACHE) === null || _PAIR_ADDRESS_CACHE === void 0 ? void 0 : _PAIR_ADDRESS_CACHE[key]) === undefined) {
-      var _extends2;
-
-      PAIR_ADDRESS_CACHE = _extends({}, PAIR_ADDRESS_CACHE, (_extends2 = {}, _extends2[key] = address.getCreate2Address(FACTORY_ADDRESS_MAP[token0.chainId], solidity.keccak256(['bytes'], [solidity.pack(['address', 'address'], [token0.address, token1.address])]), INIT_CODE_HASH_MAP[token0.chainId]), _extends2));
+      PAIR_ADDRESS_CACHE = _extends({}, PAIR_ADDRESS_CACHE, (_extends3 = {}, _extends3[tokens[0].address] = _extends({}, (_PAIR_ADDRESS_CACHE2 = PAIR_ADDRESS_CACHE) === null || _PAIR_ADDRESS_CACHE2 === void 0 ? void 0 : _PAIR_ADDRESS_CACHE2[tokens[0].address], (_extends2 = {}, _extends2[tokens[1].address] = address.getCreate2Address(FACTORY_ADDRESS, solidity.keccak256(['bytes'], [solidity.pack(['address', 'address'], [tokens[0].address, tokens[1].address])]), INIT_CODE_HASH), _extends2)), _extends3));
     }
 
-    return PAIR_ADDRESS_CACHE[key];
+    return PAIR_ADDRESS_CACHE[tokens[0].address][tokens[1].address];
   }
   /**
    * Returns true if the token is either token0 or token1
@@ -839,9 +818,9 @@ var Pair = /*#__PURE__*/function () {
 
     var inputReserve = this.reserveOf(inputAmount.token);
     var outputReserve = this.reserveOf(inputAmount.token.equals(this.token0) ? this.token1 : this.token0);
-    var inputAmountWithFee = JSBI.multiply(inputAmount.raw, FEES_NUMERATOR);
+    var inputAmountWithFee = JSBI.multiply(inputAmount.raw, _998);
     var numerator = JSBI.multiply(inputAmountWithFee, outputReserve.raw);
-    var denominator = JSBI.add(JSBI.multiply(inputReserve.raw, FEES_DENOMINATOR), inputAmountWithFee);
+    var denominator = JSBI.add(JSBI.multiply(inputReserve.raw, _1000), inputAmountWithFee);
     var outputAmount = new TokenAmount(inputAmount.token.equals(this.token0) ? this.token1 : this.token0, JSBI.divide(numerator, denominator));
 
     if (JSBI.equal(outputAmount.raw, ZERO)) {
@@ -860,8 +839,8 @@ var Pair = /*#__PURE__*/function () {
 
     var outputReserve = this.reserveOf(outputAmount.token);
     var inputReserve = this.reserveOf(outputAmount.token.equals(this.token0) ? this.token1 : this.token0);
-    var numerator = JSBI.multiply(JSBI.multiply(inputReserve.raw, outputAmount.raw), FEES_DENOMINATOR);
-    var denominator = JSBI.multiply(JSBI.subtract(outputReserve.raw, outputAmount.raw), FEES_NUMERATOR);
+    var numerator = JSBI.multiply(JSBI.multiply(inputReserve.raw, outputAmount.raw), _1000);
+    var denominator = JSBI.multiply(JSBI.subtract(outputReserve.raw, outputAmount.raw), _998);
     var inputAmount = new TokenAmount(outputAmount.token.equals(this.token0) ? this.token1 : this.token0, JSBI.add(JSBI.divide(numerator, denominator), ONE));
     return [inputAmount, new Pair(inputReserve.add(inputAmount), outputReserve.subtract(outputAmount))];
   };
@@ -1390,7 +1369,7 @@ function toHex(currencyAmount) {
 
 var ZERO_HEX = '0x0';
 /**
- * Represents the Pancake Router, and has static methods for helping execute trades.
+ * Represents the Uniswap V2 Router, and has static methods for helping execute trades.
  */
 
 var Router = /*#__PURE__*/function () {
@@ -1410,14 +1389,14 @@ var Router = /*#__PURE__*/function () {
     var etherOut = trade.outputAmount.currency === ETHER; // the router does not support both ether in and out
 
     !!(etherIn && etherOut) ?  invariant(false, 'ETHER_IN_OUT')  : void 0;
-    !(!('ttl' in options) || options.ttl > 0) ?  invariant(false, 'TTL')  : void 0;
+    !(options.ttl > 0) ?  invariant(false, 'TTL')  : void 0;
     var to = validateAndParseAddress(options.recipient);
     var amountIn = toHex(trade.maximumAmountIn(options.allowedSlippage));
     var amountOut = toHex(trade.minimumAmountOut(options.allowedSlippage));
     var path = trade.route.path.map(function (token) {
       return token.address;
     });
-    var deadline = 'ttl' in options ? "0x" + (Math.floor(new Date().getTime() / 1000) + options.ttl).toString(16) : "0x" + options.deadline.toString(16);
+    var deadline = "0x" + (Math.floor(new Date().getTime() / 1000) + options.ttl).toString(16);
     var useFeeOnTransfer = Boolean(options.feeOnTransfer);
     var methodName;
     var args;
@@ -1476,734 +1455,6 @@ var Router = /*#__PURE__*/function () {
 
   return Router;
 }();
-
-var IPancakePair = [
-	{
-		anonymous: false,
-		inputs: [
-			{
-				indexed: true,
-				internalType: "address",
-				name: "owner",
-				type: "address"
-			},
-			{
-				indexed: true,
-				internalType: "address",
-				name: "spender",
-				type: "address"
-			},
-			{
-				indexed: false,
-				internalType: "uint256",
-				name: "value",
-				type: "uint256"
-			}
-		],
-		name: "Approval",
-		type: "event"
-	},
-	{
-		anonymous: false,
-		inputs: [
-			{
-				indexed: true,
-				internalType: "address",
-				name: "sender",
-				type: "address"
-			},
-			{
-				indexed: false,
-				internalType: "uint256",
-				name: "amount0",
-				type: "uint256"
-			},
-			{
-				indexed: false,
-				internalType: "uint256",
-				name: "amount1",
-				type: "uint256"
-			},
-			{
-				indexed: true,
-				internalType: "address",
-				name: "to",
-				type: "address"
-			}
-		],
-		name: "Burn",
-		type: "event"
-	},
-	{
-		anonymous: false,
-		inputs: [
-			{
-				indexed: true,
-				internalType: "address",
-				name: "sender",
-				type: "address"
-			},
-			{
-				indexed: false,
-				internalType: "uint256",
-				name: "amount0",
-				type: "uint256"
-			},
-			{
-				indexed: false,
-				internalType: "uint256",
-				name: "amount1",
-				type: "uint256"
-			}
-		],
-		name: "Mint",
-		type: "event"
-	},
-	{
-		anonymous: false,
-		inputs: [
-			{
-				indexed: true,
-				internalType: "address",
-				name: "sender",
-				type: "address"
-			},
-			{
-				indexed: false,
-				internalType: "uint256",
-				name: "amount0In",
-				type: "uint256"
-			},
-			{
-				indexed: false,
-				internalType: "uint256",
-				name: "amount1In",
-				type: "uint256"
-			},
-			{
-				indexed: false,
-				internalType: "uint256",
-				name: "amount0Out",
-				type: "uint256"
-			},
-			{
-				indexed: false,
-				internalType: "uint256",
-				name: "amount1Out",
-				type: "uint256"
-			},
-			{
-				indexed: true,
-				internalType: "address",
-				name: "to",
-				type: "address"
-			}
-		],
-		name: "Swap",
-		type: "event"
-	},
-	{
-		anonymous: false,
-		inputs: [
-			{
-				indexed: false,
-				internalType: "uint112",
-				name: "reserve0",
-				type: "uint112"
-			},
-			{
-				indexed: false,
-				internalType: "uint112",
-				name: "reserve1",
-				type: "uint112"
-			}
-		],
-		name: "Sync",
-		type: "event"
-	},
-	{
-		anonymous: false,
-		inputs: [
-			{
-				indexed: true,
-				internalType: "address",
-				name: "from",
-				type: "address"
-			},
-			{
-				indexed: true,
-				internalType: "address",
-				name: "to",
-				type: "address"
-			},
-			{
-				indexed: false,
-				internalType: "uint256",
-				name: "value",
-				type: "uint256"
-			}
-		],
-		name: "Transfer",
-		type: "event"
-	},
-	{
-		constant: true,
-		inputs: [
-		],
-		name: "DOMAIN_SEPARATOR",
-		outputs: [
-			{
-				internalType: "bytes32",
-				name: "",
-				type: "bytes32"
-			}
-		],
-		payable: false,
-		stateMutability: "view",
-		type: "function"
-	},
-	{
-		constant: true,
-		inputs: [
-		],
-		name: "MINIMUM_LIQUIDITY",
-		outputs: [
-			{
-				internalType: "uint256",
-				name: "",
-				type: "uint256"
-			}
-		],
-		payable: false,
-		stateMutability: "pure",
-		type: "function"
-	},
-	{
-		constant: true,
-		inputs: [
-		],
-		name: "PERMIT_TYPEHASH",
-		outputs: [
-			{
-				internalType: "bytes32",
-				name: "",
-				type: "bytes32"
-			}
-		],
-		payable: false,
-		stateMutability: "pure",
-		type: "function"
-	},
-	{
-		constant: true,
-		inputs: [
-			{
-				internalType: "address",
-				name: "owner",
-				type: "address"
-			},
-			{
-				internalType: "address",
-				name: "spender",
-				type: "address"
-			}
-		],
-		name: "allowance",
-		outputs: [
-			{
-				internalType: "uint256",
-				name: "",
-				type: "uint256"
-			}
-		],
-		payable: false,
-		stateMutability: "view",
-		type: "function"
-	},
-	{
-		constant: false,
-		inputs: [
-			{
-				internalType: "address",
-				name: "spender",
-				type: "address"
-			},
-			{
-				internalType: "uint256",
-				name: "value",
-				type: "uint256"
-			}
-		],
-		name: "approve",
-		outputs: [
-			{
-				internalType: "bool",
-				name: "",
-				type: "bool"
-			}
-		],
-		payable: false,
-		stateMutability: "nonpayable",
-		type: "function"
-	},
-	{
-		constant: true,
-		inputs: [
-			{
-				internalType: "address",
-				name: "owner",
-				type: "address"
-			}
-		],
-		name: "balanceOf",
-		outputs: [
-			{
-				internalType: "uint256",
-				name: "",
-				type: "uint256"
-			}
-		],
-		payable: false,
-		stateMutability: "view",
-		type: "function"
-	},
-	{
-		constant: false,
-		inputs: [
-			{
-				internalType: "address",
-				name: "to",
-				type: "address"
-			}
-		],
-		name: "burn",
-		outputs: [
-			{
-				internalType: "uint256",
-				name: "amount0",
-				type: "uint256"
-			},
-			{
-				internalType: "uint256",
-				name: "amount1",
-				type: "uint256"
-			}
-		],
-		payable: false,
-		stateMutability: "nonpayable",
-		type: "function"
-	},
-	{
-		constant: true,
-		inputs: [
-		],
-		name: "decimals",
-		outputs: [
-			{
-				internalType: "uint8",
-				name: "",
-				type: "uint8"
-			}
-		],
-		payable: false,
-		stateMutability: "pure",
-		type: "function"
-	},
-	{
-		constant: true,
-		inputs: [
-		],
-		name: "factory",
-		outputs: [
-			{
-				internalType: "address",
-				name: "",
-				type: "address"
-			}
-		],
-		payable: false,
-		stateMutability: "view",
-		type: "function"
-	},
-	{
-		constant: true,
-		inputs: [
-		],
-		name: "getReserves",
-		outputs: [
-			{
-				internalType: "uint112",
-				name: "reserve0",
-				type: "uint112"
-			},
-			{
-				internalType: "uint112",
-				name: "reserve1",
-				type: "uint112"
-			},
-			{
-				internalType: "uint32",
-				name: "blockTimestampLast",
-				type: "uint32"
-			}
-		],
-		payable: false,
-		stateMutability: "view",
-		type: "function"
-	},
-	{
-		constant: false,
-		inputs: [
-			{
-				internalType: "address",
-				name: "",
-				type: "address"
-			},
-			{
-				internalType: "address",
-				name: "",
-				type: "address"
-			}
-		],
-		name: "initialize",
-		outputs: [
-		],
-		payable: false,
-		stateMutability: "nonpayable",
-		type: "function"
-	},
-	{
-		constant: true,
-		inputs: [
-		],
-		name: "kLast",
-		outputs: [
-			{
-				internalType: "uint256",
-				name: "",
-				type: "uint256"
-			}
-		],
-		payable: false,
-		stateMutability: "view",
-		type: "function"
-	},
-	{
-		constant: false,
-		inputs: [
-			{
-				internalType: "address",
-				name: "to",
-				type: "address"
-			}
-		],
-		name: "mint",
-		outputs: [
-			{
-				internalType: "uint256",
-				name: "liquidity",
-				type: "uint256"
-			}
-		],
-		payable: false,
-		stateMutability: "nonpayable",
-		type: "function"
-	},
-	{
-		constant: true,
-		inputs: [
-		],
-		name: "name",
-		outputs: [
-			{
-				internalType: "string",
-				name: "",
-				type: "string"
-			}
-		],
-		payable: false,
-		stateMutability: "pure",
-		type: "function"
-	},
-	{
-		constant: true,
-		inputs: [
-			{
-				internalType: "address",
-				name: "owner",
-				type: "address"
-			}
-		],
-		name: "nonces",
-		outputs: [
-			{
-				internalType: "uint256",
-				name: "",
-				type: "uint256"
-			}
-		],
-		payable: false,
-		stateMutability: "view",
-		type: "function"
-	},
-	{
-		constant: false,
-		inputs: [
-			{
-				internalType: "address",
-				name: "owner",
-				type: "address"
-			},
-			{
-				internalType: "address",
-				name: "spender",
-				type: "address"
-			},
-			{
-				internalType: "uint256",
-				name: "value",
-				type: "uint256"
-			},
-			{
-				internalType: "uint256",
-				name: "deadline",
-				type: "uint256"
-			},
-			{
-				internalType: "uint8",
-				name: "v",
-				type: "uint8"
-			},
-			{
-				internalType: "bytes32",
-				name: "r",
-				type: "bytes32"
-			},
-			{
-				internalType: "bytes32",
-				name: "s",
-				type: "bytes32"
-			}
-		],
-		name: "permit",
-		outputs: [
-		],
-		payable: false,
-		stateMutability: "nonpayable",
-		type: "function"
-	},
-	{
-		constant: true,
-		inputs: [
-		],
-		name: "price0CumulativeLast",
-		outputs: [
-			{
-				internalType: "uint256",
-				name: "",
-				type: "uint256"
-			}
-		],
-		payable: false,
-		stateMutability: "view",
-		type: "function"
-	},
-	{
-		constant: true,
-		inputs: [
-		],
-		name: "price1CumulativeLast",
-		outputs: [
-			{
-				internalType: "uint256",
-				name: "",
-				type: "uint256"
-			}
-		],
-		payable: false,
-		stateMutability: "view",
-		type: "function"
-	},
-	{
-		constant: false,
-		inputs: [
-			{
-				internalType: "address",
-				name: "to",
-				type: "address"
-			}
-		],
-		name: "skim",
-		outputs: [
-		],
-		payable: false,
-		stateMutability: "nonpayable",
-		type: "function"
-	},
-	{
-		constant: false,
-		inputs: [
-			{
-				internalType: "uint256",
-				name: "amount0Out",
-				type: "uint256"
-			},
-			{
-				internalType: "uint256",
-				name: "amount1Out",
-				type: "uint256"
-			},
-			{
-				internalType: "address",
-				name: "to",
-				type: "address"
-			},
-			{
-				internalType: "bytes",
-				name: "data",
-				type: "bytes"
-			}
-		],
-		name: "swap",
-		outputs: [
-		],
-		payable: false,
-		stateMutability: "nonpayable",
-		type: "function"
-	},
-	{
-		constant: true,
-		inputs: [
-		],
-		name: "symbol",
-		outputs: [
-			{
-				internalType: "string",
-				name: "",
-				type: "string"
-			}
-		],
-		payable: false,
-		stateMutability: "pure",
-		type: "function"
-	},
-	{
-		constant: false,
-		inputs: [
-		],
-		name: "sync",
-		outputs: [
-		],
-		payable: false,
-		stateMutability: "nonpayable",
-		type: "function"
-	},
-	{
-		constant: true,
-		inputs: [
-		],
-		name: "token0",
-		outputs: [
-			{
-				internalType: "address",
-				name: "",
-				type: "address"
-			}
-		],
-		payable: false,
-		stateMutability: "view",
-		type: "function"
-	},
-	{
-		constant: true,
-		inputs: [
-		],
-		name: "token1",
-		outputs: [
-			{
-				internalType: "address",
-				name: "",
-				type: "address"
-			}
-		],
-		payable: false,
-		stateMutability: "view",
-		type: "function"
-	},
-	{
-		constant: true,
-		inputs: [
-		],
-		name: "totalSupply",
-		outputs: [
-			{
-				internalType: "uint256",
-				name: "",
-				type: "uint256"
-			}
-		],
-		payable: false,
-		stateMutability: "view",
-		type: "function"
-	},
-	{
-		constant: false,
-		inputs: [
-			{
-				internalType: "address",
-				name: "to",
-				type: "address"
-			},
-			{
-				internalType: "uint256",
-				name: "value",
-				type: "uint256"
-			}
-		],
-		name: "transfer",
-		outputs: [
-			{
-				internalType: "bool",
-				name: "",
-				type: "bool"
-			}
-		],
-		payable: false,
-		stateMutability: "nonpayable",
-		type: "function"
-	},
-	{
-		constant: false,
-		inputs: [
-			{
-				internalType: "address",
-				name: "from",
-				type: "address"
-			},
-			{
-				internalType: "address",
-				name: "to",
-				type: "address"
-			},
-			{
-				internalType: "uint256",
-				name: "value",
-				type: "uint256"
-			}
-		],
-		name: "transferFrom",
-		outputs: [
-			{
-				internalType: "bool",
-				name: "",
-				type: "bool"
-			}
-		],
-		payable: false,
-		stateMutability: "nonpayable",
-		type: "function"
-	}
-];
 
 var ERC20 = [
 	{
@@ -2301,7 +1552,7 @@ var Fetcher = /*#__PURE__*/function () {
       if (provider === undefined) provider = providers.getDefaultProvider(networks.getNetwork(tokenA.chainId));
       !(tokenA.chainId === tokenB.chainId) ? "development" !== "production" ? invariant(false, 'CHAIN_ID') : invariant(false) : void 0;
       var address = Pair.getAddress(tokenA, tokenB);
-      return Promise.resolve(new contracts.Contract(address, IPancakePair, provider).getReserves()).then(function (_ref) {
+      return Promise.resolve(new contracts.Contract(address, IPancakePair.abi, provider).getReserves()).then(function (_ref) {
         var reserves0 = _ref[0],
             reserves1 = _ref[1];
         var balances = tokenA.sortsBefore(tokenB) ? [reserves0, reserves1] : [reserves1, reserves0];
@@ -2320,11 +1571,9 @@ exports.Currency = Currency;
 exports.CurrencyAmount = CurrencyAmount;
 exports.ETHER = ETHER;
 exports.FACTORY_ADDRESS = FACTORY_ADDRESS;
-exports.FACTORY_ADDRESS_MAP = FACTORY_ADDRESS_MAP;
 exports.Fetcher = Fetcher;
 exports.Fraction = Fraction;
 exports.INIT_CODE_HASH = INIT_CODE_HASH;
-exports.INIT_CODE_HASH_MAP = INIT_CODE_HASH_MAP;
 exports.InsufficientInputAmountError = InsufficientInputAmountError;
 exports.InsufficientReservesError = InsufficientReservesError;
 exports.MINIMUM_LIQUIDITY = MINIMUM_LIQUIDITY;

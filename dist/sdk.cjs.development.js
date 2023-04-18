@@ -20,7 +20,7 @@ var _FACTORY_ADDRESS_MAP, _INIT_CODE_HASH_MAP, _SOLIDITY_TYPE_MAXIMA;
 
 (function (ChainId) {
   ChainId[ChainId["MAINNET"] = 56] = "MAINNET";
-  ChainId[ChainId["TESTNET"] = 97] = "TESTNET";
+  ChainId[ChainId["BSCTESTNET"] = 97] = "BSCTESTNET";
 })(exports.ChainId || (exports.ChainId = {}));
 
 (function (TradeType) {
@@ -32,13 +32,12 @@ var _FACTORY_ADDRESS_MAP, _INIT_CODE_HASH_MAP, _SOLIDITY_TYPE_MAXIMA;
   Rounding[Rounding["ROUND_DOWN"] = 0] = "ROUND_DOWN";
   Rounding[Rounding["ROUND_HALF_UP"] = 1] = "ROUND_HALF_UP";
   Rounding[Rounding["ROUND_UP"] = 2] = "ROUND_UP";
-})(exports.Rounding || (exports.Rounding = {})); // export const FACTORY_ADDRESS = '0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73'
-
+})(exports.Rounding || (exports.Rounding = {}));
 
 var FACTORY_ADDRESS = '0x690642379661A95b356F69Fb63aAE1768b804CC3';
-var FACTORY_ADDRESS_MAP = (_FACTORY_ADDRESS_MAP = {}, _FACTORY_ADDRESS_MAP[exports.ChainId.MAINNET] = FACTORY_ADDRESS, _FACTORY_ADDRESS_MAP[exports.ChainId.TESTNET] = '0x6725f303b657a9451d8ba641348b6761a6cc7a17', _FACTORY_ADDRESS_MAP);
+var FACTORY_ADDRESS_MAP = (_FACTORY_ADDRESS_MAP = {}, _FACTORY_ADDRESS_MAP[exports.ChainId.MAINNET] = FACTORY_ADDRESS, _FACTORY_ADDRESS_MAP[exports.ChainId.BSCTESTNET] = '0x6725f303b657a9451d8ba641348b6761a6cc7a17', _FACTORY_ADDRESS_MAP);
 var INIT_CODE_HASH = '0x00fb7f630766e6a796048ea87d01acd3068e8ff67d078148a3fa3f4a84f69bd5';
-var INIT_CODE_HASH_MAP = (_INIT_CODE_HASH_MAP = {}, _INIT_CODE_HASH_MAP[exports.ChainId.MAINNET] = INIT_CODE_HASH, _INIT_CODE_HASH_MAP[exports.ChainId.TESTNET] = '0xd0d4c4cd0848c93cb4fd1f498d7013ee6bfb25783ea21593d5834f5d250ece66', _INIT_CODE_HASH_MAP);
+var INIT_CODE_HASH_MAP = (_INIT_CODE_HASH_MAP = {}, _INIT_CODE_HASH_MAP[exports.ChainId.MAINNET] = INIT_CODE_HASH, _INIT_CODE_HASH_MAP[exports.ChainId.BSCTESTNET] = '0xd0d4c4cd0848c93cb4fd1f498d7013ee6bfb25783ea21593d5834f5d250ece66', _INIT_CODE_HASH_MAP);
 var MINIMUM_LIQUIDITY = /*#__PURE__*/JSBI.BigInt(1000); // exports for internal consumption
 
 var ZERO = /*#__PURE__*/JSBI.BigInt(0);
@@ -382,13 +381,12 @@ var _WETH;
 var Token = /*#__PURE__*/function (_Currency) {
   _inheritsLoose(Token, _Currency);
 
-  function Token(chainId, address, decimals, symbol, name, projectLink) {
+  function Token(chainId, address, decimals, symbol, name) {
     var _this;
 
     _this = _Currency.call(this, decimals, symbol, name) || this;
     _this.chainId = chainId;
     _this.address = validateAndParseAddress(address);
-    _this.projectLink = projectLink;
     return _this;
   }
   /**
@@ -438,7 +436,7 @@ function currencyEquals(currencyA, currencyB) {
     return currencyA === currencyB;
   }
 }
-var WETH = (_WETH = {}, _WETH[exports.ChainId.MAINNET] = /*#__PURE__*/new Token(exports.ChainId.MAINNET, '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', 18, 'WBNB', 'Wrapped BNB', 'https://www.binance.org'), _WETH[exports.ChainId.TESTNET] = /*#__PURE__*/new Token(exports.ChainId.TESTNET, '0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd', 18, 'WBNB', 'Wrapped BNB', 'https://www.binance.org'), _WETH);
+var WETH = (_WETH = {}, _WETH[exports.ChainId.MAINNET] = /*#__PURE__*/new Token(exports.ChainId.MAINNET, '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', 18, 'WBNB', 'Wrapped BNB'), _WETH[exports.ChainId.BSCTESTNET] = /*#__PURE__*/new Token(exports.ChainId.BSCTESTNET, '0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd', 18, 'WBNB', 'Wrapped BNB'), _WETH);
 
 var _toSignificantRoundin, _toFixedRounding;
 var Decimal = /*#__PURE__*/toFormat(_Decimal);
